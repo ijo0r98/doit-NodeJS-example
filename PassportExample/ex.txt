@@ -1,0 +1,91 @@
+CH9. 패스포트로 사용자 인증하기
+
+
+1) 패스포트로 로그인하기
+
+패스포트: 사용자 인증 익스프레스 모듈
+스트래티지(strategy, 인증 방식)
+    - 로컬 스트래티지: 데이터베이스에 저장된 사용자 정보와 비교
+    - OAuth 인증방식: vpdltmqnrdlsk xmdnlxj rPwjd
+
+클라이언트 인증 요청
+-> 웹 서버에 미리 설정한 인증 방식 사용자
+-> 사용자 정보 세션에 저장
+-> 로그인 이후 요청 정보 처리 시 세션 정보 확인
+
+//post방식으로 라우팅 함수 등록
+router.route('/login').post(passport.authenticate('local', //->스트래티지 방식 지정 authenicate()메소드
+    { 
+        //callback함수
+        successRediret:'/', //성공
+        failureRedirect:'/login' //실패
+        failureFlash: true //플래시 메시지 옵션
+    }
+));
+
+
+플래시 메시지(flash message): 리다이렉트를 사용하여 응답 보낼 때
+req.flash('..', '..'); //메시지 설정
+req.flash('..'); //메시지 조회
+
+오류 플래시 메시지는 스트래지티지 설정 시 검증콜백(verify callback)이 설정되어 있다면 자동으로 설정
+검증콜백이란? 인증을 처리하는 함수, 어떤 문제로 인증이 실패했는지 알려줌
+
+플래시 메시지를 응답 웹문서 쪽으로 전달하고 싶다면
+passport.authenicate('local', {failureFlash:'..'});
+
+커스텀 콜백(custom callback): 인증을 성공했거나 실패했을 때 어떻게 처리할 지 직접 함수로 지정
+router.route('/login').get(function(req, res, next){
+    passport.authenticate('local', function(err, user, info){
+        if(err) throw err;
+        if(!user) return res.redirect('/login');
+
+        //패스포트 인증 결과에 따라 로그인 진행
+        req.login(user, function(err){
+            if(err) return err;
+            retrun res.redirect('/users/'+user.username);
+        });
+    })(req, res, next); //authenicate
+});
+
+
+//전형적인 로컬 스트래티지 객체 사용 코드
+var passport=require('passport');
+var LocalStrategy=require('passport-local').Strategy;
+
+passport.use(new LocalStrategy( //스트래티지 설정-로컬
+    function(username, password, doen){ //콜백함수로 전달
+        
+        //검증 콜백 -> 인증 정보들을 가지고 있는 사용자 찾아내는 것, done으로 알려줌
+        UserMode.findOne({username:username}, function(err, user){
+            //username 실패
+            if(err) return done(err); //예외 발생시 에러 전달
+            if(!user) return done(null, false, {message:'Incorrect username'});
+
+            //password 실패
+            if(!user.validPassword(passpword)) return done(null, false, {message:'Incorrect password'});
+            
+            //인증 성공(사용자 정보 유효)
+            return done(null, user); 
+        })
+    }
+))
+
+
+*클라이언트(웹 브라우저)-요청파라미터 전달->passport모듈, localstrategy-사용할 요청 파라미터 전달->검증콜백(서버)
+
+
+//전형적인 세션 저장, 복원 코드
+passport.serializeUser(function(user, done){
+    //사용자 인증이 성공적으로 진행
+    done(null, user.id);
+})
+passport.deserializeUser(function(id,done){
+    //사용자 인증 이후 요청이 들어올때마다
+    UserModel.findById(id, function(err, user){
+        done(err, user)
+    })
+})
+//id만 세션에 저장하여 세션에 저장된 데이터의 양 줄임
+//로그인 이후 요청이 들어오면 req.user객체로 복원됨
+//*2개의 메소드로 정의->패스포트 모듈이 아닌 다른 코드에서 처리하도록 되어있음
