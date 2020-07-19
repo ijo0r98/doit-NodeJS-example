@@ -1,0 +1,22 @@
+CH6. 데이터베이스 사용하기
+
+관계형 데이터베이스 연결 시 커넥션 풀 사용
+: 연결 객체가 많이 만들어지는 것 방지, 한번 만든 연결 다시 사용
+
+- connectionlimit: 최대 연결 개수
+- host
+- port 3306(default)
+- user
+- password
+- database
+- debug: 처리 과정을 로그로 남길 것인지
+
+conn.query('sql', params, callback);
+*callback(err, result);
+
+*쿼리문 실행 후 conn.releas() 반드시 해줘야함
+ -> 연결 객체 커넥션 풀로 반환
+ -> 콜백함수 실행
+
+ app8) 함수 정의 : connection pool 에러 처리
+       -> 라우팅 함수에서 패스와 연결 : pool이 초기화 된 경우 정의, 함수 콜백함수 에러 처리 

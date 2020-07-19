@@ -1,0 +1,63 @@
+<!--add함수 호출-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h3>JSON_RPC add test</h3>
+    <br>
+    <input type="text" name="aInput" id="aInput" value="10">
+    <p>+</p>
+    <input type="text" name="bInput" id="bInput" value="10">
+    <br>
+    <br>
+    <input type="button" name="requestButton" id="requestButton" value="요청하기">
+    <br>
+    <p>결과</p>
+    <div id="results"></div>
+
+    <script src="jquery-2.1.4.min.js"></script> <!--다운받은 파일 지정-->
+    <script src="jquery.jsonrpc.js"></script>
+    <script>
+
+        $(function () {
+            $jsonRPC.setup({ //기본 설정
+                endPoint: 'http://localhost:3000/api', //접속할 서버의 url
+                namespace: '' //비워둠
+            })
+
+
+            $("#requestButton").click(function () {
+                var aStr=$("#aInput").val();
+                var bStr=$("#bInput").val();
+                var a=parseInt(aStr);
+                var b=parseInt(bStr);
+                var method = 'add'; //서버쪽의 함수와 이름 동일하게 연결
+
+                $.$jsonRPC.request(method, { //서버쪽 함수 요청
+                    id: 1002, 
+                    params: [a,b], //서버로 보낼 데이터 넣는 배열 객체
+                    success: function (data) { //응답을 성공적으로 받았을 때 callback함수
+                        println('정상 응답을 받았습니다.');
+                        console.dir(data);
+                        println(data.result);
+                    },
+                    error: function (data) { //응답 수신 실패
+                        println('오류 응답을 받았습니다.');
+                        console.log(data);
+                        println(data.error.code+', '+data.eror.message);
+                    }
+                });
+                println('[' + method + '] method로 요청을 보냈습니다.')
+            });
+        });
+    </script>
+</body>
+
+</html>

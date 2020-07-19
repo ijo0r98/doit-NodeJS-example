@@ -1,0 +1,56 @@
+<!--echo error 함수 호출-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h3>JSON_RPC test</h3>
+    <br>
+    <textarea name='messageInput' id="messageInput"></textarea>
+    <br>
+    <input type="button" name="requestButton" id="requestButton" value="요청하기">
+    <br>
+    <p>결과</p>
+    <div id="results"></div>
+    <script src="jquery-2.1.4.min.js"></script> <!--다운받은 파일 지정-->
+    <script src="jquery.jsonrpc.js"></script>
+    <script>
+
+        $(function () {
+            $jsonRPC.setup({ //기본 설정
+                endPoint: 'http://localhost:3000/api', //접속할 서버의 url
+                namespace: '' //비워둠
+            })
+
+
+            $("#requestButton").click(function () {
+                var message = $("messageInput").val();
+                var method = 'echo_error'; //서버쪽의 함수와 이름 동일하게 연결
+
+                $.$jsonRPC.request(method, { //서버쪽 함수 요청
+                    params: [message],
+                    success: function (data) {
+                        println('정상 응답을 받았습니다.');
+                        console.dir(data);
+                        println(data.result);
+                    },
+                    error: function (data) { //응답 수신 실패
+                        println('오류 응답을 받았습니다.');
+                        console.log(data);
+                        println(data.error.code+', '+data.error.message);
+                    }
+                });
+
+                println('[' + method + '] method로 요청을 보냈습니다.')
+            });
+        });
+    </script>
+</body>
+
+</html>

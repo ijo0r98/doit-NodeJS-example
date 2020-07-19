@@ -1,0 +1,75 @@
+<!--echo 함수 암호화 복호화-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h3>JSON_RPC test</h3>
+    <br>
+    <textarea name='messageInput' id="messageInput"></textarea>
+    <br>
+    <input type="button" name="requestButton" id="requestButton" value="요청하기">
+    <br>
+    <p>결과</p>
+    <div id="results"></div>
+    <!--다운받은 파일 지정-->
+    <script src="jquery-2.1.4.min.js"></script>
+    <script src="jquery.jsonrpc.js"></script>
+    <script src="cryptojs/aes.js"></script>
+    <script>
+
+        $(function () {
+            $jsonRPC.setup({ //기본 설정
+                endPoint: 'http://localhost:3000/api', //접속할 서버의 url
+                namespace: '' //비워둠
+            })
+
+
+            $("#requestButton").click(function () {
+                var message = $("messageInput").val();
+                   
+                //암호화 테스트
+                var secret='my secret'; //노출되지 않는 키값 사용
+                /*encrypt(): 암호화*/
+                var encrypted=''+CryptoJS.AES.encrypt(message, secret);
+                console.log(encrypted);
+
+                //복호화 테스트
+                /*decrypt(): 복호화*/
+                var decrypted=CryptoJS.AES.decrypt(encrypted, secret).toString(CrypthoJS.enc.Utf8);
+                console.log(decrypted);
+                var method='echo_encrypted';
+
+                $.$jsonRPC.request(method, { //서버쪽 함수 요청
+                    id: 1001, //요청id, 서버로부터 받는 응답 구별
+                    params: [encrypted], //암호화한 메시지
+                    success: function (data) { //응답을 성공적으로 받았을 때 callback함수
+                        println('정상 응답을 받았습니다.');
+                        console.dir(data);
+
+                        var secret='my secret';
+                        var encrypted=data.request[0];
+                        var decrypted=CryptoJS.AES.decrypt(encrypted, secret).toString(CrypthoJS.enc.Utf8);
+
+                        console.log(decrypted);
+                        println(decrypted);
+                    },
+                    error: function (data) { //응답 수신 실패
+                        println('오류 응답을 받았습니다.');
+                        console.log(data);
+                        println(data.error.message);
+                    }
+                });
+                println('[' + method + '] method로 요청을 보냈습니다.')
+            });
+        });
+    </script>
+</body>
+
+</html>
